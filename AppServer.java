@@ -14,6 +14,7 @@ import java.util.Calendar;
  */
 public class AppServer extends UnicastRemoteObject implements AppServerInterface {
 
+    private static final long serialVersionUID = 6248933011470405333L;
     private static AppServer appServer;
 
     public AppServer() throws RemoteException {

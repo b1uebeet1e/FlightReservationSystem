@@ -9,6 +9,7 @@ import java.rmi.server.UnicastRemoteObject;
  */
 public class Client extends UnicastRemoteObject implements ClientInterface {
 
+    private static final long serialVersionUID = -1876860991259021461L;
     private static AppServerInterface appServer;
 
     public Client() throws RemoteException {
