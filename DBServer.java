@@ -68,9 +68,9 @@ public class DBServer {
 
         for (Flight flight : flights) {
             if (passengers <= flight.getAvailable_seats()) {
-                if (departure_location.equals(flight.getDeparture_location()) && departure_date.YEAR == flight.getDate_time().YEAR && departure_date.MONTH == flight.getDate_time().MONTH && departure_date.DATE == flight.getDate_time().DATE) {
+                if (departure_location.equals(flight.getDeparture_location()) && departure_date.get(Calendar.DAY_OF_YEAR) == flight.getDate_time().get(Calendar.DAY_OF_YEAR) && departure_date.get(Calendar.YEAR) == flight.getDate_time().get(Calendar.YEAR)) {
                     departures.add(flight);
-                } else if (arrival_location.equals(flight.getArrival_location()) && arrival_date.YEAR == flight.getDate_time().YEAR && arrival_date.MONTH == flight.getDate_time().MONTH && arrival_date.DATE == flight.getDate_time().DATE) {
+                } else if (arrival_location.equals(flight.getArrival_location()) && arrival_date.get(Calendar.DAY_OF_YEAR) == flight.getDate_time().get(Calendar.DAY_OF_YEAR) && arrival_date.get(Calendar.YEAR) == flight.getDate_time().get(Calendar.YEAR)) {
                     arrivals.add(flight);
                 }
             }

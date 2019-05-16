@@ -6,6 +6,8 @@ import java.util.Calendar;
  */
 public class Flight implements Serializable {
 
+    private static final long serialVersionUID = -6239765691663793790L;
+
     private Calendar date_time;
 
     private String departure_location;
