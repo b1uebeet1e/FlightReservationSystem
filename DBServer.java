@@ -65,12 +65,19 @@ public class DBServer {
         ArrayList<Flight> departures = new ArrayList<>();
         ArrayList<Flight> arrivals = new ArrayList<>();
 
-        for (Flight flight : flights) {
-            if (passengers <= flight.getAvailable_seats()) {
-                if (departure_location.equals(flight.getDeparture_location()) && departure_date.get(Calendar.DAY_OF_YEAR) == flight.getDate_time().get(Calendar.DAY_OF_YEAR) && departure_date.get(Calendar.YEAR) == flight.getDate_time().get(Calendar.YEAR)) {
-                    departures.add(flight);
-                } else if (arrival_location.equals(flight.getArrival_location()) && arrival_date.get(Calendar.DAY_OF_YEAR) == flight.getDate_time().get(Calendar.DAY_OF_YEAR) && arrival_date.get(Calendar.YEAR) == flight.getDate_time().get(Calendar.YEAR)) {
-                    arrivals.add(flight);
+        synchronized(this) {
+            for (Flight flight : flights) {
+                if (passengers <= flight.getAvailable_seats()) {
+                    if (departure_location.equals(flight.getDeparture_location())
+                            && departure_date.get(Calendar.DAY_OF_YEAR) == flight.getDate_time()
+                                    .get(Calendar.DAY_OF_YEAR)
+                            && departure_date.get(Calendar.YEAR) == flight.getDate_time().get(Calendar.YEAR)) {
+                        departures.add(flight);
+                    } else if (arrival_location.equals(flight.getArrival_location())
+                            && arrival_date.get(Calendar.DAY_OF_YEAR) == flight.getDate_time().get(Calendar.DAY_OF_YEAR)
+                            && arrival_date.get(Calendar.YEAR) == flight.getDate_time().get(Calendar.YEAR)) {
+                        arrivals.add(flight);
+                    }
                 }
             }
         }
@@ -82,17 +89,25 @@ public class DBServer {
         int found_first = -1;
         int found_second = -1;
 
-        for (int i = 0; i < flights.size(); i++) {
-            if ((departure_flight_code.equals(flights.get(i).getFlight_code()) || arrival_flight_code.equals(flights.get(i).getFlight_code())) && passengers <= flights.get(i).getAvailable_seats()) {
-                if (found_first < 0) found_first = i;
-                else if (found_second < 0) found_second = i;
+        synchronized(this) {
+            for (int i = 0; i < flights.size(); i++) {
+                if ((departure_flight_code.equals(flights.get(i).getFlight_code())
+                        || arrival_flight_code.equals(flights.get(i).getFlight_code()))
+                        && passengers <= flights.get(i).getAvailable_seats()) {
+                    if (found_first < 0)
+                        found_first = i;
+                    else if (found_second < 0)
+                        found_second = i;
+                }
             }
         }
 
         if (found_first < 0 || found_second < 0) return false;
 
-        flights.get(found_first).book_seats(passengers);
-        flights.get(found_second).book_seats(passengers);
+        synchronized(this) {
+            flights.get(found_first).book_seats(passengers);
+            flights.get(found_second).book_seats(passengers);
+        }
 
         return true;
     }
