@@ -23,33 +23,42 @@ public class AppServer extends UnicastRemoteObject implements AppServerInterface
 
     public static void main(String[] args) throws RemoteException, MalformedURLException {
         appServer = new AppServer();
-
         Naming.rebind("//localhost/appserver", appServer);
-
-        // TODO: start server
     }
 
     @Override
     public ArrayList<ArrayList<Flight>> check(Calendar departure_date, String departure_location, Calendar arrival_date, String arrival_location, int passengers) throws RemoteException {
-        return new ArrayList<>();
-        // TODO: Add connection to DB Server
+        try {
+            Socket call = new Socket("localhost", 1337);
+            ObjectOutputStream output = new ObjectOutputStream(call.getOutputStream());
+            ObjectInputStream input = new ObjectInputStream(call.getInputStream());
+
+            output.writeObject(new Message(departure_date, departure_location, arrival_date, arrival_location, passengers));
+            ArrayList<ArrayList<Flight>> available_flights = (ArrayList<ArrayList<Flight>>) input.readObject();
+
+            input.close();
+            output.close();
+            call.close();
+            return available_flights;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
     public boolean book(String departure_flight_code, String arrival_flight_code, int passengers) throws RemoteException {
         try {
-            Socket call = new Socket("localhost", 51234);
+            Socket call = new Socket("localhost", 1337);
             ObjectOutputStream output = new ObjectOutputStream(call.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(call.getInputStream());
 
-            output.writeUTF("BOOK");
-            output.flush();
-            ArrayList<Object> parameters = new ArrayList<>();
-            parameters.add(departure_flight_code);
-            parameters.add(arrival_flight_code);
-            parameters.add(passengers);
-            output.writeObject(parameters);
-            boolean result = input.readBoolean();
+            output.writeObject(new Message(departure_flight_code, arrival_flight_code, passengers));
+            boolean result = (boolean) input.readObject();
 
             input.close();
             output.close();
@@ -58,7 +67,10 @@ public class AppServer extends UnicastRemoteObject implements AppServerInterface
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        return true;
+        return false;
     }
 }

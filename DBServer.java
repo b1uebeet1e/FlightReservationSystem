@@ -36,13 +36,12 @@ public class DBServer {
                     ObjectOutputStream outputStream = new ObjectOutputStream(tmpSocket.getOutputStream());
                     ObjectInputStream inputStream = new ObjectInputStream(tmpSocket.getInputStream());
                     
-                    String message = inputStream.readUTF();
-                    ArrayList<Object> parameters = (ArrayList<Object>) inputStream.readObject();
+                    Message message = (Message) inputStream.readObject();
 
-                    if (message.equals("CHECK")) {
-                        outputStream.writeObject(check((Calendar)parameters.get(0), (String)parameters.get(1), (Calendar)parameters.get(2), (String)parameters.get(3), (int)parameters.get(4)));
-                    } else if (message.equals("BOOK")) {
-                        outputStream.writeBoolean(book((String)parameters.get(0), (String)parameters.get(1), (int)parameters.get(2)));
+                    if (message.getMessage().equals("CHECK")) {
+                        outputStream.writeObject(check(message.getDeparture_date(), message.getDeparture_location(), message.getArrival_date(), message.getArrival_location(), message.getPassengers()));
+                    } else if (message.getMessage().equals("BOOK")) {
+                        outputStream.writeObject(book(message.getDeparture_flight_code(), message.getArrival_flight_code(), message.getPassengers()));
                     }
 
                     inputStream.close();
@@ -79,7 +78,7 @@ public class DBServer {
         return available_flights;
     }
 
-    public boolean book(String departure_flight_code, String arrival_flight_code, int passengers) {
+    public boolean book(String departure_flight_code, String arrival_flight_code, int passengers) {        
         int found_first = -1;
         int found_second = -1;
 
@@ -100,6 +99,6 @@ public class DBServer {
 
 
     public static void main(String[] args) throws IOException {
-        new DBServer().start(51234);
+        new DBServer().start(1337);
     }
 }

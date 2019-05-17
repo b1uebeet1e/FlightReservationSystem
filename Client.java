@@ -7,7 +7,7 @@ import java.rmi.server.UnicastRemoteObject;
 /**
  * Client
  */
-public class Client extends UnicastRemoteObject implements ClientInterface {
+public class Client extends UnicastRemoteObject {
 
     private static final long serialVersionUID = -1876860991259021461L;
     private static AppServerInterface appServer;
@@ -18,6 +18,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
     public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
         appServer = (AppServerInterface) Naming.lookup("//localhost/appserver");
-        System.out.println(appServer.book("departure_flight_code", "arrival_flight_code", 1200));
+        System.out.println(appServer.book("SA195192359", "AS195212030", 50));
+        System.out.println(appServer.book("SA195192359", "AS195212030", 1150));
     }
 }
