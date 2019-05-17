@@ -1,6 +1,4 @@
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -28,35 +26,7 @@ public class DBServer {
 
         while (true) {
             Socket app_server_call = server.accept();
-
-            Runnable manage_call = () -> {
-                try {
-                    Socket tmpSocket = app_server_call;
-
-                    ObjectOutputStream outputStream = new ObjectOutputStream(tmpSocket.getOutputStream());
-                    ObjectInputStream inputStream = new ObjectInputStream(tmpSocket.getInputStream());
-                    
-                    Message message = (Message) inputStream.readObject();
-
-                    if (message.getMessage().equals("CHECK")) {
-                        outputStream.writeObject(check(message.getDeparture_date(), message.getDeparture_location(), message.getArrival_date(), message.getArrival_location(), message.getPassengers()));
-                    } else if (message.getMessage().equals("BOOK")) {
-                        outputStream.writeObject(book(message.getDeparture_flight_code(), message.getArrival_flight_code(), message.getPassengers()));
-                    }
-
-                    inputStream.close();
-                    outputStream.close();
-                    tmpSocket.close();
-
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            };
-            new Thread(manage_call).start();
+            new Thread(new AppServerCallManager(app_server_call, this)).start();
         }
     }
 
