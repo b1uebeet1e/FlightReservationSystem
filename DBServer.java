@@ -82,6 +82,9 @@ public class DBServer {
             }
         }
 
+        available_flights.add(departures);
+        available_flights.add(arrivals);
+
         return available_flights;
     }
 
