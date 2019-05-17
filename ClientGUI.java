@@ -1,14 +1,20 @@
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.HBox;
@@ -32,15 +38,15 @@ public class ClientGUI extends Application {
 
         this.stage.setTitle("Flight Reservation System");
 
-        this.stage.setMinWidth(650);
+        this.stage.setMinWidth(850);
         this.stage.setMinHeight(150);
 
-        this.stage.setWidth(650);
+        this.stage.setWidth(850);
         this.stage.setHeight(200);
 
         this.stage.show();
 
-        // client_connect();
+        client_connect();
     }
 
     public static void main(String[] args) {
@@ -60,7 +66,8 @@ public class ClientGUI extends Application {
         arrival_location.setPromptText("departure_location");
         HBox.setHgrow(arrival_location, Priority.ALWAYS);
 
-        hBox0.getChildren().addAll(new Text("departure_location"), departure_location, new Text("arrival_location"), arrival_location);
+        hBox0.getChildren().addAll(new Text("departure_location"), departure_location, new Text("arrival_location"),
+                arrival_location);
 
         HBox hBox10 = new HBox(5);
         hBox10.setAlignment(Pos.CENTER);
@@ -75,10 +82,11 @@ public class ClientGUI extends Application {
         departure_month.setPrefWidth(40);
 
         TextField departure_year = new TextField();
-        departure_year.setPromptText("YY");
-        departure_year.setPrefWidth(40);
+        departure_year.setPromptText("YYYY");
+        departure_year.setPrefWidth(60);
 
-        hBox10.getChildren().addAll(new Text("departure_date"), departure_date, new Text("/"), departure_month, new Text("/"), departure_year);
+        hBox10.getChildren().addAll(new Text("departure_date"), departure_date, new Text("/"), departure_month,
+                new Text("/"), departure_year);
 
         HBox hBox11 = new HBox(5);
         hBox11.setAlignment(Pos.CENTER);
@@ -93,21 +101,23 @@ public class ClientGUI extends Application {
         arrival_month.setPrefWidth(40);
 
         TextField arrival_year = new TextField();
-        arrival_year.setPromptText("YY");
-        arrival_year.setPrefWidth(40);
+        arrival_year.setPromptText("YYYY");
+        arrival_year.setPrefWidth(60);
 
-        hBox11.getChildren().addAll(new Text("arrival_date"), arrival_date, new Text("/"), arrival_month, new Text("/"), arrival_year);
+        hBox11.getChildren().addAll(new Text("arrival_date"), arrival_date, new Text("/"), arrival_month, new Text("/"),
+                arrival_year);
 
-        HBox hBox12 = new HBox(5);
+        HBox hBox12 = new HBox(20);
         hBox12.setAlignment(Pos.CENTER);
         HBox.setHgrow(hBox12, Priority.ALWAYS);
 
-        Button search = new Button("Search");
-        search.setOnAction(e -> {
-            check(departure_date.getText(), departure_month.getText(), departure_year.getText(), departure_location.getText(), arrival_date.getText(), arrival_month.getText(), arrival_year.getText(), arrival_location.getText());
-        });
+        TextField passengers = new TextField();
+        passengers.setPromptText("#");
+        passengers.setPrefWidth(40);
 
-        hBox12.getChildren().add(search);
+        Button search = new Button("Search");
+
+        hBox12.getChildren().addAll(new Text("passengers"), passengers, search);
 
         HBox hBox1 = new HBox(20);
         hBox1.setAlignment(Pos.CENTER);
@@ -126,12 +136,122 @@ public class ClientGUI extends Application {
 
         vBox.getChildren().addAll(hBox0, hBox1, resultsBox);
 
+        search.setOnAction(e -> {
+            check(departure_date.getText(), departure_month.getText(), departure_year.getText(),
+                    departure_location.getText(), arrival_date.getText(), arrival_month.getText(), arrival_year.getText(),
+                    arrival_location.getText(), passengers.getText(), resultsBox);
+        });
+
         stage.setScene(new Scene(vBox));
         stage.show();
     }
 
-    public void check(String departure_date, String departure_month, String departure_year, String departure_location, String arrival_date, String arrival_month, String arrival_year, String arrival_location) {
+    public void check(String departure_date, String departure_month, String departure_year, String departure_location,
+            String arrival_date, String arrival_month, String arrival_year, String arrival_location, String passengers,
+            VBox vbox) {
+        vbox.getChildren().clear();
 
+        ArrayList<ArrayList<Flight>> flights = null;
+
+        try {
+            flights = client.check(
+                    (Calendar) new GregorianCalendar(Integer.parseInt(departure_year),
+                            Integer.parseInt(departure_month), Integer.parseInt(departure_date)),
+                    departure_location, (Calendar) new GregorianCalendar(Integer.parseInt(arrival_year),
+                            Integer.parseInt(arrival_month), Integer.parseInt(arrival_date)),
+                    arrival_location, Integer.parseInt(passengers));
+        } catch (NumberFormatException e) {
+            alert(AlertType.WARNING, "Invalid arguments", e.getMessage());
+            return;
+        } catch (RemoteException e) {
+            alert(AlertType.ERROR, "Network error", e.getMessage());
+            e.printStackTrace();
+            return;
+        }
+
+        if (flights == null) {
+            alert(AlertType.WARNING, "Could not find any flights", "Try again with different dates...");
+            return;
+        }
+
+        TableView<Flight> departures = new TableView<>();
+        HBox.setHgrow(departures, Priority.ALWAYS);
+        departures.getItems().addAll(flights.get(0)); 
+
+        TableColumn<Flight, String> flight_code_dep = new TableColumn<>("flight_code");
+        flight_code_dep.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFlight_code()));
+
+
+        TableColumn<Flight, String> dep_location_dep = new TableColumn<>("departure_location");
+        dep_location_dep.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getDeparture_location()));
+
+        TableColumn<Flight, String> arr_location_dep = new TableColumn<>("arrival_location");
+        arr_location_dep.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getArrival_location()));
+
+
+        TableColumn<Flight, String> date_dep = new TableColumn<>("date");
+        date_dep.setCellValueFactory(param -> new SimpleStringProperty(
+            param.getValue().getDate_time().get(Calendar.DATE) + "/" +
+            param.getValue().getDate_time().get(Calendar.MONTH) + "/" +
+            param.getValue().getDate_time().get(Calendar.YEAR)
+        ));
+
+        TableColumn<Flight, String> time_dep = new TableColumn<>("time");
+        time_dep.setCellValueFactory(param -> new SimpleStringProperty(
+            param.getValue().getDate_time().get(Calendar.HOUR) + ":" +
+            param.getValue().getDate_time().get(Calendar.MINUTE) + " " +
+            param.getValue().getDate_time().get(Calendar.AM_PM)
+        ));
+
+        TableColumn<Flight, String> available_seats_dep = new TableColumn<>("available_seats");
+        available_seats_dep.setCellValueFactory(param -> new SimpleStringProperty(Integer.toString(param.getValue().getAvailable_seats())));
+
+        TableColumn<Flight, String> price_dep = new TableColumn<>("price");
+        price_dep.setCellValueFactory(param -> new SimpleStringProperty(Double.toString(param.getValue().getPrice())));
+
+        departures.getColumns().addAll(flight_code_dep, dep_location_dep, arr_location_dep, date_dep, time_dep, available_seats_dep, price_dep);
+
+
+        TableView<Flight> arrivals = new TableView<>();
+        HBox.setHgrow(arrivals, Priority.ALWAYS);
+        arrivals.getItems().addAll(flights.get(1)); 
+
+        TableColumn<Flight, String> flight_code_arr = new TableColumn<>("flight_code");
+        flight_code_arr.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFlight_code()));
+
+
+        TableColumn<Flight, String> dep_location_arr = new TableColumn<>("departure_location");
+        dep_location_arr.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getDeparture_location()));
+
+        TableColumn<Flight, String> arr_location_arr = new TableColumn<>("arrival_location");
+        arr_location_arr.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getArrival_location()));
+
+
+        TableColumn<Flight, String> date_arr = new TableColumn<>("date");
+        date_arr.setCellValueFactory(param -> new SimpleStringProperty(
+            param.getValue().getDate_time().get(Calendar.DATE) + "/" +
+            param.getValue().getDate_time().get(Calendar.MONTH) + "/" +
+            param.getValue().getDate_time().get(Calendar.YEAR)
+        ));
+
+        TableColumn<Flight, String> time_arr = new TableColumn<>("time");
+        time_arr.setCellValueFactory(param -> new SimpleStringProperty(
+            param.getValue().getDate_time().get(Calendar.HOUR) + ":" +
+            param.getValue().getDate_time().get(Calendar.MINUTE) + " " +
+            param.getValue().getDate_time().get(Calendar.AM_PM)
+        ));
+
+        TableColumn<Flight, String> available_seats_arr = new TableColumn<>("available_seats");
+        available_seats_arr.setCellValueFactory(param -> new SimpleStringProperty(Integer.toString(param.getValue().getAvailable_seats())));
+
+        TableColumn<Flight, String> price_arr = new TableColumn<>("price");
+        price_arr.setCellValueFactory(param -> new SimpleStringProperty(Double.toString(param.getValue().getPrice())));
+
+        arrivals.getColumns().addAll(flight_code_arr, dep_location_arr, arr_location_arr, date_arr, time_arr, available_seats_arr, price_arr);
+
+        HBox hbox = new HBox(departures, arrivals);
+        VBox.setVgrow(hbox, Priority.ALWAYS); 
+        vbox.getChildren().add(hbox);
     }
 
     public void client_connect() {
@@ -149,5 +269,13 @@ public class ClientGUI extends Application {
             alert.show();
             e.printStackTrace();
         }
+    }
+
+    private void alert(AlertType type, String title, String context){
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(context);
+        alert.show();
     }
 }

@@ -38,12 +38,13 @@ public class DBServer {
         synchronized(this) {
             for (Flight flight : flights) {
                 if (passengers <= flight.getAvailable_seats()) {
-                    if (departure_location.equals(flight.getDeparture_location())
-                            && departure_date.get(Calendar.DAY_OF_YEAR) == flight.getDate_time()
-                                    .get(Calendar.DAY_OF_YEAR)
+                    if (departure_location.equals(flight.getDeparture_location()) 
+                            && arrival_location.equals(flight.getArrival_location()) 
+                            && departure_date.get(Calendar.DAY_OF_YEAR) == flight.getDate_time().get(Calendar.DAY_OF_YEAR)
                             && departure_date.get(Calendar.YEAR) == flight.getDate_time().get(Calendar.YEAR)) {
                         departures.add(flight);
-                    } else if (arrival_location.equals(flight.getArrival_location())
+                    } else if (arrival_location.equals(flight.getDeparture_location())
+                            && departure_location.equals(flight.getArrival_location()) 
                             && arrival_date.get(Calendar.DAY_OF_YEAR) == flight.getDate_time().get(Calendar.DAY_OF_YEAR)
                             && arrival_date.get(Calendar.YEAR) == flight.getDate_time().get(Calendar.YEAR)) {
                         arrivals.add(flight);
@@ -51,6 +52,8 @@ public class DBServer {
                 }
             }
         }
+
+        if (departures.isEmpty() || arrivals.isEmpty()) return null;
 
         available_flights.add(departures);
         available_flights.add(arrivals);
