@@ -22,29 +22,33 @@ public class AppServer extends UnicastRemoteObject implements AppServerInterface
     }
 
     public static void main(String[] args) throws RemoteException, MalformedURLException {
+        // initialize server
         appServer = new AppServer();
+        // define server address
         Naming.rebind("//localhost/appserver", appServer);
     }
 
     @Override
     public ArrayList<ArrayList<Flight>> check(Calendar departure_date, String departure_location, Calendar arrival_date, String arrival_location, int passengers) throws RemoteException {
         try {
+            // connect to dbServer
             Socket call = new Socket("localhost", 1337);
             ObjectOutputStream output = new ObjectOutputStream(call.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(call.getInputStream());
 
+            // send message to server
             output.writeObject(new Message(departure_date, departure_location, arrival_date, arrival_location, passengers));
+            // receive available flights
             ArrayList<ArrayList<Flight>> available_flights = (ArrayList<ArrayList<Flight>>) input.readObject();
 
+            // close connections
             input.close();
             output.close();
             call.close();
             return available_flights;
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return null;
@@ -53,13 +57,17 @@ public class AppServer extends UnicastRemoteObject implements AppServerInterface
     @Override
     public boolean book(String departure_flight_code, String arrival_flight_code, int passengers) throws RemoteException {
         try {
+            // connect to dbServer
             Socket call = new Socket("localhost", 1337);
             ObjectOutputStream output = new ObjectOutputStream(call.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(call.getInputStream());
 
+            // send message to server
             output.writeObject(new Message(departure_flight_code, arrival_flight_code, passengers));
+            // receive booking confirmation
             boolean result = (boolean) input.readObject();
 
+            // close connections
             input.close();
             output.close();
             call.close();

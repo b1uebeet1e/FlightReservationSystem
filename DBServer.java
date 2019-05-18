@@ -10,10 +10,12 @@ import java.util.GregorianCalendar;
  */
 public class DBServer {
 
+    // list of available flights
 	private ArrayList<Flight> flights;
     private ServerSocket server;
 
     public DBServer() {
+        // flight list initialization
         flights = new ArrayList<>();
         flights.add(new Flight(new GregorianCalendar(2019, 5, 19, 23, 59), "Samos", "Athens", "SA195192359", 200, 100, 119.99));
         flights.add(new Flight(new GregorianCalendar(2019, 5, 19, 17, 00), "Samos", "Athens", "SA195191700", 200, 100, 150));
@@ -22,19 +24,24 @@ public class DBServer {
     }
 
     public void start(int port) throws IOException {
+        // server socket initialization
         server = new ServerSocket(port);
 
         while (true) {
+            // call acceptance
             Socket app_server_call = server.accept();
+            // run appServer call manager on new thread
             new Thread(new AppServerCallManager(app_server_call, this)).start();
         }
     }
 
+    // check available flights
     public ArrayList<ArrayList<Flight>> check(Calendar departure_date, String departure_location, Calendar arrival_date, String arrival_location, int passengers) {
         ArrayList<ArrayList<Flight>> available_flights = new ArrayList<>();
         ArrayList<Flight> departures = new ArrayList<>();
         ArrayList<Flight> arrivals = new ArrayList<>();
 
+        // synchronized to avoid collision
         synchronized(this) {
             for (Flight flight : flights) {
                 if (passengers <= flight.getAvailable_seats()) {
@@ -53,6 +60,7 @@ public class DBServer {
             }
         }
 
+        // return null if no pair of flights can be found for given parameters
         if (departures.isEmpty() || arrivals.isEmpty()) return null;
 
         available_flights.add(departures);
@@ -61,10 +69,12 @@ public class DBServer {
         return available_flights;
     }
 
+    // book flights
     public boolean book(String departure_flight_code, String arrival_flight_code, int passengers) {        
         int found_first = -1;
         int found_second = -1;
 
+        // synchronized to avoid collision
         synchronized(this) {
             for (int i = 0; i < flights.size(); i++) {
                 if ((departure_flight_code.equals(flights.get(i).getFlight_code())
@@ -78,8 +88,10 @@ public class DBServer {
             }
         }
 
+        // return false if no pair of flights can be booked for given parameters
         if (found_first < 0 || found_second < 0) return false;
 
+        // synchronized to avoid collision
         synchronized(this) {
             flights.get(found_first).book_seats(passengers);
             flights.get(found_second).book_seats(passengers);

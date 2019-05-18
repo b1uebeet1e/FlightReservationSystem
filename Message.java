@@ -16,6 +16,7 @@ public class Message implements Serializable {
     private Calendar arrival_date;
     private String arrival_location;
 
+    // Constructor for CHECK message
     public Message(Calendar departure_date, String departure_location, Calendar arrival_date, String arrival_location, int passengers) {
         this.message = "CHECK";
         this.departure_flight_code = null;
@@ -27,6 +28,7 @@ public class Message implements Serializable {
         this.arrival_location = arrival_location;
     }
 
+    // Constructor for BOOK message
     public Message(String departure_flight_code, String arrival_flight_code, int passengers) {
         this.message = "BOOK";
         this.departure_flight_code = departure_flight_code;

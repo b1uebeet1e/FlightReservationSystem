@@ -47,6 +47,7 @@ public class ClientGUI extends Application {
 
         this.stage.show();
 
+        // connect to appServer
         client_connect();
     }
 
@@ -67,8 +68,7 @@ public class ClientGUI extends Application {
         arrival_location.setPromptText("departure_location");
         HBox.setHgrow(arrival_location, Priority.ALWAYS);
 
-        hBox0.getChildren().addAll(new Text("departure_location"), departure_location, new Text("arrival_location"),
-                arrival_location);
+        hBox0.getChildren().addAll(new Text("departure_location"), departure_location, new Text("arrival_location"), arrival_location);
 
         HBox hBox10 = new HBox(5);
         hBox10.setAlignment(Pos.CENTER);
@@ -147,6 +147,7 @@ public class ClientGUI extends Application {
         stage.show();
     }
 
+    // method that checks and displays for available flights
     public void check(String departure_date, String departure_month, String departure_year, String departure_location,
             String arrival_date, String arrival_month, String arrival_year, String arrival_location, String passengers,
             VBox vbox) {
@@ -278,6 +279,8 @@ public class ClientGUI extends Application {
         passengers_to_be_booked.setPrefWidth(60);
 
         Button book = new Button("Book flights");
+
+        // book flights method
         book.setOnAction(e -> {
             try {
                 if (client.book(departures_to_book.getSelectionModel().getSelectedItem(),arrivals_to_book.getSelectionModel().getSelectedItem(), Integer.parseInt(passengers_to_be_booked.getText()))) {
@@ -308,6 +311,7 @@ public class ClientGUI extends Application {
             alert.setTitle("Connection Error!!");
             alert.setHeaderText(null);
             alert.setContentText(e.toString());
+            // close program if connection to appServer fails
             alert.setOnCloseRequest(event -> {
                 Platform.exit();
                 System.exit(-1);
@@ -317,6 +321,7 @@ public class ClientGUI extends Application {
         }
     }
 
+    // alert generating method
     private void alert(AlertType type, String title, String context){
         Alert alert = new Alert(type);
         alert.setTitle(title);
