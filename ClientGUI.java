@@ -199,8 +199,7 @@ public class ClientGUI extends Application {
         TableColumn<Flight, String> time_dep = new TableColumn<>("time");
         time_dep.setCellValueFactory(
                 param -> new SimpleStringProperty(param.getValue().getDate_time().get(Calendar.HOUR) + ":"
-                        + param.getValue().getDate_time().get(Calendar.MINUTE) + " "
-                        + param.getValue().getDate_time().get(Calendar.AM_PM)));
+                        + param.getValue().getDate_time().get(Calendar.MINUTE)));
 
         TableColumn<Flight, String> available_seats_dep = new TableColumn<>("available_seats");
         available_seats_dep.setCellValueFactory(
@@ -234,9 +233,8 @@ public class ClientGUI extends Application {
 
         TableColumn<Flight, String> time_arr = new TableColumn<>("time");
         time_arr.setCellValueFactory(
-                param -> new SimpleStringProperty(param.getValue().getDate_time().get(Calendar.HOUR) + ":"
-                        + param.getValue().getDate_time().get(Calendar.MINUTE) + " "
-                        + param.getValue().getDate_time().get(Calendar.AM_PM)));
+                param -> new SimpleStringProperty(param.getValue().getDate_time().get(Calendar.HOUR_OF_DAY) + ":"
+                        + param.getValue().getDate_time().get(Calendar.MINUTE)));
 
         TableColumn<Flight, String> available_seats_arr = new TableColumn<>("available_seats");
         available_seats_arr.setCellValueFactory(
